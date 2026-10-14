@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex University | Digital College Voting System</title>
+  <meta name="description" content="Secure, paperless digital college voting system inspired by Right2Vote. Features Class Elections, Departmental Elections, Student Body Representation, and Campus Policy Referendums." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="theme-light">
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <!-- University Brand -->
+      <div class="brand-section">
+        <div class="university-crest">
+          <svg class="crest-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="10" fill="#0F172A" />
+            <path d="M20 7L8 13.5V23C8 28.5 13.1 33.6 20 35C26.9 33.6 32 28.5 32 23V13.5L20 7Z" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round" />
+            <path d="M15 19L18.5 22.5L25 16" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="university-name">Apex University</div>
+          <h1 class="portal-title">College Voting System <span class="tag-version">Right2Vote Edition</span></h1>
+        </div>
+      </div>
+
+      <!-- Center Election Status Indicator -->
+      <div class="election-status-indicator" id="header-status-pill">
+        <span class="pulse-dot" id="status-pulse-dot"></span>
+        <span class="status-label" id="header-election-status">VOTING OPEN</span>
+      </div>
+
+      <!-- Right Header Actions & Navigation -->
+      <div class="header-actions">
+        <!-- Main Navigation Bar -->
+        <nav class="portal-nav" aria-label="Portal Navigation">
+          <button id="nav-btn-student" class="nav-item-btn active" data-view="student">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+            <span>Student Voter</span>
+          </button>
+          <button id="nav-btn-admin" class="nav-item-btn" data-view="admin">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Election Admin</span>
+          </button>
+          <button id="nav-btn-dept" class="nav-item-btn" data-view="dept">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a10.97 10.97 0 01-1.25 3.949C4.088 12.33 4 12.658 4 13c0 2.21 3.582 4 8 4s8-1.79 8-4c0-.342-.088-.67-.25-1a10.97 10.97 0 01-1.25-3.949l2.644-1.131a1 1 0 000-1.84l-7-3z"/>
+            </svg>
+            <span>Dept Rep</span>
+          </button>
+          <button id="nav-btn-public-results" class="nav-item-btn" data-view="results">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+            </svg>
+            <span>Live Results &amp; Audit</span>
+          </button>
+        </nav>
+
+        <!-- Active User Session Pill & Logout -->
+        <div id="header-user-session" class="header-user-session hidden">
+          <div class="user-session-chip">
+            <span class="user-avatar-mini" id="header-user-avatar">RV</span>
+            <span class="user-session-name" id="header-user-name">Rohan Verma</span>
+          </div>
+          <button id="btn-header-logout" class="btn btn-ghost-danger btn-sm" title="Log Out of Session">
+            Sign Out
+          </button>
+        </div>
+
+        <!-- Quick Demo Switcher helper -->
+        <div class="demo-quick-menu">
+          <button id="btn-demo-menu" class="btn-demo" title="Quick Demo Accounts" aria-label="Demo profiles">
+            <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+            </svg>
+            <span>Demo Logins</span>
+          </button>
+          <div id="demo-dropdown" class="demo-dropdown hidden">
+            <div class="dropdown-header">Quick Test Profiles</div>
+            <button class="dropdown-item" data-demo-id="STU2024001" data-demo-role="student">
+              <span class="demo-dot green"></span>
+              <div>
+                <strong>STU2024001</strong> - Rohan Verma
+                <span class="badge-sub">Ready to Vote (3rd Year Computer Science)</span>
+              </div>
+            </button>
+            <button class="dropdown-item" data-demo-id="STU2024003" data-demo-role="student">
+              <span class="demo-dot green"></span>
+              <div>
+                <strong>STU2024003</strong> - Vikram Malhotra
+                <span class="badge-sub">Ready to Vote (4th Year Mechanical Eng.)</span>
+              </div>
+            </button>
+            <button class="dropdown-item" data-demo-id="STU2024004" data-demo-role="student">
+              <span class="demo-dot red"></span>
+              <div>
+                <strong>STU2024004</strong> - Sneha Patel
+                <span class="badge-sub">Already Voted (Has Receipt Token)</span>
+              </div>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" data-demo-role="admin">
+              <span class="demo-dot purple"></span>
+              <div>
+                <strong>ADMIN-AU2026</strong> (Election Officer)
+                <span class="badge-sub">Supervisory Commission Dashboard</span>
+              </div>
+            </button>
+            <button class="dropdown-item" data-demo-role="dept">
+              <span class="demo-dot blue"></span>
+              <div>
+                <strong>DEPT-CS</strong> (Dept Representative)
+                <span class="badge-sub">Faculty Turnout Console</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Theme Toggle (Light / Dark) -->
+        <button id="theme-toggle-btn" class="icon-button" aria-label="Toggle Dark / Light Theme" title="Toggle theme">
+          <svg id="icon-sun" class="theme-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="icon-moon" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Right2Vote Trust Highlights Banner -->
+  <section class="trust-highlights-bar">
+    <div class="trust-container">
+      <div class="trust-item">
+        <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span><strong>100% Secret Ballot:</strong> Zero-Knowledge Dual Ledger</span>
+      </div>
+      <div class="trust-item">
+        <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span><strong>SHA-256 Cryptographic Token:</strong> Verifiable Digital Receipt</span>
+      </div>
+      <div class="trust-item">
+        <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+        </svg>
+        <span><strong>Paperless &amp; Instant:</strong> Zero Queues, Real-time Tallying</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- RIGHT2VOTE 4 CORE GOVERNANCE TIERS (FROM SCREENSHOT)     -->
+  <!-- ======================================================== -->
+  <section class="election-tiers-showcase">
+    <div class="tiers-container">
+      <div class="tiers-header">
+        <span class="minimal-badge">Right2Vote Core Election Platform</span>
+        <h2 class="tiers-title">Campus Governance &amp; Multi-Tier Election Options</h2>
+        <p class="tiers-subtitle">Select any level of representation below to explore active ballots or participate in verified campus democracy.</p>
+      </div>
+
+      <!-- Tier Hierarchy Progression Trail -->
+      <div class="tier-hierarchy-strip">
+        <button class="hierarchy-step highlight" onclick="app.jumpToElectionTier('class')">
+          <span>🎓 Step 1: Class Election (CR)</span>
+        </button>
+        <span class="hierarchy-arrow">&rarr;</span>
+        <button class="hierarchy-step" onclick="app.jumpToElectionTier('department')">
+          <span>🏢 Step 2: Department Election</span>
+        </button>
+        <span class="hierarchy-arrow">&rarr;</span>
+        <button class="hierarchy-step" onclick="app.jumpToElectionTier('council')">
+          <span>🏛️ Step 3: University Council</span>
+        </button>
+        <span class="hierarchy-arrow">&rarr;</span>
+        <button class="hierarchy-step" onclick="app.jumpToElectionTier('committee_policy')">
+          <span>📋 Step 4: Campus Policies &amp; Committees</span>
+        </button>
+      </div>
+
+      <div class="tiers-grid">
+        <!-- Card 1: Student Body Representation -->
+        <div class="tier-card" data-tier="council" onclick="app.jumpToElectionTier('council')">
+          <div>
+            <div class="tier-num-badge">1</div>
+            <h3 class="tier-card-title">Student Body Representation</h3>
+            <p class="tier-card-desc">From electing student council members to forming committees, eVoting ensures a seamless and secure democratic process across different levels of student governance.</p>
+          </div>
+          <div class="tier-card-footer">
+            <span class="tier-badge">Executive Council</span>
+            <span class="tier-link-text">Vote Council &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Committee Elections -->
+        <div class="tier-card" data-tier="committee" onclick="app.jumpToElectionTier('committee_policy')">
+          <div>
+            <div class="tier-num-badge">2</div>
+            <h3 class="tier-card-title">Committee Elections</h3>
+            <p class="tier-card-desc">Student bodies often have committees overseeing various aspects of campus life and eVoting ensures efficient and inclusive elections for these roles.</p>
+          </div>
+          <div class="tier-card-footer">
+            <span class="tier-badge">Campus Committees</span>
+            <span class="tier-link-text">Vote Committees &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Departmental Representative -->
+        <div class="tier-card" data-tier="department" onclick="app.jumpToElectionTier('department')">
+          <div>
+            <div class="tier-num-badge">3</div>
+            <h3 class="tier-card-title">Departmental Representative</h3>
+            <p class="tier-card-desc">Elections at the departmental level allow tailored representation and address unique challenges faced by students in different academic disciplines.</p>
+          </div>
+          <div class="tier-card-footer">
+            <span class="tier-badge">Academic Faculty</span>
+            <span class="tier-link-text">Vote Department &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Voting on Campus Policies -->
+        <div class="tier-card" data-tier="policy" onclick="app.jumpToElectionTier('committee_policy')">
+          <div>
+            <div class="tier-num-badge">4</div>
+            <h3 class="tier-card-title">Voting on Campus Policies</h3>
+            <p class="tier-card-desc">Decision-making involves voting on policies that affect campus life, academic programs, extracurricular activities and student services.</p>
+          </div>
+          <div class="tier-card-footer">
+            <span class="tier-badge">Campus Referendum</span>
+            <span class="tier-link-text">Vote Policies &rarr;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="app-main">
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: AUTHENTICATION / SEPARATE LOGIN GATEWAY          -->
+    <!-- ======================================================== -->
+    <section id="login-gateway-section" class="portal-section active">
+      <div class="login-wrapper">
+        <div class="login-header-text">
+          <div class="minimal-badge">Secure University Authentication</div>
+          <h2 class="login-main-title">Apex University eVoting Portal</h2>
+          <p class="login-sub-title">Select your designated portal below to securely authenticate. Each role provides strict permissions and separate access.</p>
+        </div>
+
+        <!-- Separate Login Tabs Segment -->
+        <div class="login-tabs-bar" role="tablist">
+          <button class="login-tab-btn active" id="tab-login-student" data-target="login-student-pane">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+            Student Voter Login
+          </button>
+          <button class="login-tab-btn" id="tab-login-admin" data-target="login-admin-pane">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Election Admin Login
+          </button>
+          <button class="login-tab-btn" id="tab-login-dept" data-target="login-dept-pane">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a10.97 10.97 0 01-1.25 3.949C4.088 12.33 4 12.658 4 13c0 2.21 3.582 4 8 4s8-1.79 8-4c0-.342-.088-.67-.25-1a10.97 10.97 0 01-1.25-3.949l2.644-1.131a1 1 0 000-1.84l-7-3z"/>
+            </svg>
+            Department Rep Login
+          </button>
+        </div>
+
+        <!-- Pre-election / Locked State Notice -->
+        <div id="auth-election-notice" class="alert-banner hidden"></div>
+
+        <!-- LOGIN PANE 1: STUDENT VOTER -->
+        <div id="login-student-pane" class="login-card-container active">
+          <div class="card auth-card">
+            <div class="card-header-clean">
+              <div class="card-icon-circle blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="auth-title">Student Voter Verification</h3>
+                <p class="auth-sub">Enter your university roll number and 6-digit security OTP to cast your confidential ballot.</p>
+              </div>
+            </div>
+
+            <form id="student-auth-form" class="auth-form" onsubmit="return false;">
+              <!-- Student Roll Number Input -->
+              <div class="form-group">
+                <label for="student-id-input" class="form-label">
+                  University Roll Number / Student ID <span class="required">*</span>
+                </label>
+                <div class="input-with-action">
+                  <input 
+                    type="text" 
+                    id="student-id-input" 
+                    class="form-input" 
+                    placeholder="e.g. STU2024001" 
+                    required 
+                    autocomplete="username"
+                  />
+                  <button type="button" id="btn-request-otp" class="btn btn-secondary btn-input-action">
+                    Get OTP
+                  </button>
+                </div>
+                <div class="field-help-row">
+                  <span class="field-hint">Quick test IDs: <code>STU2024001</code> (Eligible), <code>STU2024004</code> (Voted)</span>
+                </div>
+              </div>
+
+              <!-- Enrolled Department Select -->
+              <div class="form-group">
+                <label for="student-dept-select" class="form-label">
+                  Enrolled Academic Department <span class="required">*</span>
+                </label>
+                <select id="student-dept-select" class="form-input" required>
+                  <option value="" disabled selected>Select your enrolled department</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Electronics & Comm.">Electronics &amp; Comm.</option>
+                  <option value="Mechanical Eng.">Mechanical Engineering</option>
+                  <option value="Biotechnology">Biotechnology</option>
+                  <option value="Business Administration">Business Administration</option>
+                </select>
+                <span class="field-hint">Customizes department and class representative slates</span>
+              </div>
+
+              <!-- OTP Verification Field -->
+              <div class="form-group">
+                <div class="label-row">
+                  <label for="student-otp-input" class="form-label">
+                    One-Time Security Passcode (OTP) <span class="required">*</span>
+                  </label>
+                  <span id="otp-timer-display" class="otp-hint-badge">Simulated Code: <strong>749201</strong></span>
+                </div>
+                <div class="input-with-action">
+                  <input 
+                    type="text" 
+                    id="student-otp-input" 
+                    class="form-input mono" 
+                    placeholder="6-digit passcode" 
+                    maxlength="6"
+                    required 
+                    autocomplete="one-time-code"
+                  />
+                  <button type="button" id="btn-autofill-otp" class="btn btn-ghost btn-input-action">
+                    Auto-Fill
+                  </button>
+                </div>
+              </div>
+
+              <!-- Anonymity Consent Checkbox -->
+              <div class="checkbox-row">
+                <input type="checkbox" id="auth-consent-check" class="custom-checkbox" checked />
+                <label for="auth-consent-check" class="checkbox-label">
+                  I certify that I am the authorized student and agree to cryptographic identity detachment upon ballot submission.
+                </label>
+              </div>
+
+              <!-- Submit CTA -->
+              <button type="submit" id="btn-student-login" class="btn btn-primary btn-block btn-lg">
+                <span>Verify Credentials &amp; Access Ballot</span>
+                <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </form>
+
+            <div class="auth-footer-help">
+              <span class="text-muted">Need a quick test account?</span>
+              <div class="quick-chips">
+                <button class="chip-btn" onclick="app.setQuickDemo('STU2024001')">Rohan (Eligible)</button>
+                <button class="chip-btn" onclick="app.setQuickDemo('STU2024003')">Vikram (Eligible)</button>
+                <button class="chip-btn" onclick="app.setQuickDemo('STU2024004')">Sneha (Voted)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGIN PANE 2: ELECTION ADMIN -->
+        <div id="login-admin-pane" class="login-card-container hidden">
+          <div class="card auth-card">
+            <div class="card-header-clean">
+              <div class="card-icon-circle purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="auth-title">Election Supervisory Commission Login</h3>
+                <p class="auth-sub">Restricted administrative access for election officers to manage voter rolls, lifecycle phases, and certify tallies.</p>
+              </div>
+            </div>
+
+            <form id="admin-auth-form" class="auth-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="admin-username-input" class="form-label">
+                  Commission Officer ID <span class="required">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="admin-username-input" 
+                  class="form-input" 
+                  placeholder="e.g. ADMIN-AU2026" 
+                  value="ADMIN-AU2026"
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="admin-password-input" class="form-label">
+                  Master Security Key / Password <span class="required">*</span>
+                </label>
+                <input 
+                  type="password" 
+                  id="admin-password-input" 
+                  class="form-input" 
+                  placeholder="Enter security password" 
+                  value="admin@123"
+                  required 
+                />
+                <span class="field-hint">Default test key: <code>admin@123</code></span>
+              </div>
+
+              <div class="security-notice-box">
+                <svg class="w-4 h-4 text-purple flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <span>All administrative actions are timestamped and recorded in the audit trail.</span>
+              </div>
+
+              <button type="submit" id="btn-admin-login-submit" class="btn btn-primary btn-block btn-lg">
+                <span>Unlock Election Control Console</span>
+                <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- LOGIN PANE 3: DEPARTMENT REPRESENTATIVE -->
+        <div id="login-dept-pane" class="login-card-container hidden">
+          <div class="card auth-card">
+            <div class="card-header-clean">
+              <div class="card-icon-circle green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 010 7.75"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="auth-title">Department Representative Portal</h3>
+                <p class="auth-sub">Faculty representatives can track department voter turnout, manage student rosters, and view faculty leaderboard.</p>
+              </div>
+            </div>
+
+            <form id="dept-auth-form" class="auth-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="dept-login-select" class="form-label">
+                  Select Academic Faculty / Department <span class="required">*</span>
+                </label>
+                <select id="dept-login-select" class="form-input" required>
+                  <option value="Computer Science" selected>Computer Science</option>
+                  <option value="Mechanical Eng.">Mechanical Engineering</option>
+                  <option value="Biotechnology">Biotechnology</option>
+                  <option value="Electronics & Comm.">Electronics &amp; Comm.</option>
+                  <option value="Business Administration">Business Administration</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="dept-pin-input" class="form-label">
+                  Faculty Access Code / PIN <span class="required">*</span>
+                </label>
+                <input 
+                  type="password" 
+                  id="dept-pin-input" 
+                  class="form-input mono" 
+                  placeholder="e.g. DEPT2026" 
+                  value="DEPT2026"
+                  required 
+                />
+                <span class="field-hint">Default faculty PIN: <code>DEPT2026</code></span>
+              </div>
+
+              <button type="submit" id="btn-dept-login-submit" class="btn btn-primary btn-block btn-lg">
+                <span>Enter Department Console</span>
+                <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 2: STUDENT VOTER ACTIVE PORTAL                      -->
+    <!-- ======================================================== -->
+    <section id="student-portal-view" class="portal-section hidden">
+      
+      <!-- Student Voting Stepper Tracker -->
+      <div class="stepper-card">
+        <div class="stepper-track">
+          <div class="step-item completed" data-step="1">
+            <div class="step-bubble">✓</div>
+            <div class="step-info">
+              <span class="step-number">Step 1</span>
+              <span class="step-title">Authentication</span>
+            </div>
+          </div>
+          <div class="step-divider filled" id="step-line-1"></div>
+          <div class="step-item active" data-step="2">
+            <div class="step-bubble">2</div>
+            <div class="step-info">
+              <span class="step-number">Step 2</span>
+              <span class="step-title">Ballot Casting</span>
+            </div>
+          </div>
+          <div class="step-divider" id="step-line-2"></div>
+          <div class="step-item" data-step="3">
+            <div class="step-bubble">3</div>
+            <div class="step-info">
+              <span class="step-number">Step 3</span>
+              <span class="step-title">Review Selections</span>
+            </div>
+          </div>
+          <div class="step-divider" id="step-line-3"></div>
+          <div class="step-item" data-step="4">
+            <div class="step-bubble">4</div>
+            <div class="step-info">
+              <span class="step-number">Step 4</span>
+              <span class="step-title">Digital Receipt</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW: ALREADY VOTED SCREEN (If user tries to vote twice) -->
+      <div id="student-voted-receipt-container" class="subview-container hidden">
+        <div class="card already-voted-card">
+          <div class="already-voted-header">
+            <div class="status-icon-ring success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            </div>
+            <h2>Vote Already Recorded</h2>
+            <p class="subtitle">A verified ballot has already been submitted and sealed for this student profile.</p>
+          </div>
+
+          <div class="voter-details-pill-card">
+            <div class="voter-mini-row">
+              <span class="label">Voter Roll ID:</span>
+              <span class="value mono font-bold" id="voted-student-id">STU2024004</span>
+            </div>
+            <div class="voter-mini-row">
+              <span class="label">Voter Name:</span>
+              <span class="value font-bold" id="voted-student-name">Sneha Patel</span>
+            </div>
+            <div class="voter-mini-row">
+              <span class="label">Department:</span>
+              <span class="value" id="voted-student-dept">Mechanical Eng.</span>
+            </div>
+            <div class="voter-mini-row">
+              <span class="label">Timestamp Recorded:</span>
+              <span class="value" id="voted-timestamp">2026-09-26 11:20:14 IST</span>
+            </div>
+            <div class="voter-mini-row">
+              <span class="label">Cryptographic Token:</span>
+              <span class="value mono token-preview" id="voted-hash-token">0x89c4...f13a</span>
+            </div>
+          </div>
+
+          <div class="already-voted-guidance">
+            <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <span>Under Right2Vote zero-knowledge constitution rules, ballots cannot be amended, superseded, or re-cast once encrypted.</span>
+          </div>
+
+          <div class="card-action-btns">
+            <button id="btn-print-existing-receipt" class="btn btn-secondary">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-2">
+                <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd"/>
+              </svg>
+              View Full Receipt
+            </button>
+            <button id="btn-switch-voter-back" class="btn btn-primary">
+              Log Out &amp; Return to Portal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW: DIGITAL BALLOT (CANDIDATE SELECTION) -->
+      <div id="student-ballot-container" class="subview-container active">
+        <!-- Active Session Info Card -->
+        <div class="ballot-session-banner">
+          <div class="session-user-info">
+            <div class="user-avatar-sm" id="session-initials">RV</div>
+            <div>
+              <div class="session-name" id="session-student-name">Rohan Verma</div>
+              <div class="session-meta">
+                <span id="session-student-id">STU2024001</span> • 
+                <span id="session-student-dept">Computer Science (3rd Year)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ballot-completion-tracker">
+            <div class="tracker-label">
+              <span>Overall Ballot Progress:</span>
+              <span id="ballot-progress-count" class="font-bold">0 of 4 Chosen</span>
+            </div>
+            <div class="tracker-bar-bg">
+              <div id="ballot-progress-fill" class="tracker-bar-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <button id="btn-cancel-ballot" class="btn btn-outline-danger btn-sm" title="Exit Ballot and Sign Out">
+            Exit Ballot
+          </button>
+        </div>
+
+        <!-- NEW: ELECTION SCOPE / TIER SELECTOR BAR (Class Election -> Department Election -> Council -> Policy) -->
+        <div class="ballot-scope-selector-card">
+          <div class="scope-selector-header">
+            <div>
+              <span class="scope-subtitle">ACTIVE BALLOT SELECTION</span>
+              <h3 class="scope-title">Choose Election Level</h3>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <button type="button" id="btn-quick-fill-ballot" class="btn-quick-fill" title="Quickly select top candidates for all 11 positions to demo voting">
+                <span>⚡ Quick Fill All (Demo)</span>
+              </button>
+              <div class="scope-mode-toggle">
+                <span class="text-muted font-sm">Mode:</span>
+                <button id="btn-toggle-all-scopes" class="scope-mode-btn active" title="View all elections consolidated">All Tiers</button>
+                <button id="btn-toggle-guided-scopes" class="scope-mode-btn" title="Step through Class -> Dept -> Council -> Policies">Guided Step-by-Step</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="scope-nav-tabs" role="tablist">
+            <button class="scope-tab-btn active" data-scope="all">
+              <span>⚡ All Elections</span>
+              <span class="scope-pill-count" id="scope-count-all">11</span>
+            </button>
+            <button class="scope-tab-btn" data-scope="class">
+              <span>🎓 1. Class Election (CR)</span>
+              <span class="scope-pill-count" id="scope-count-class">2</span>
+            </button>
+            <button class="scope-tab-btn" data-scope="department">
+              <span>🏢 2. Department Election</span>
+              <span class="scope-pill-count" id="scope-count-dept">2</span>
+            </button>
+            <button class="scope-tab-btn" data-scope="council">
+              <span>🏛️ 3. University Council</span>
+              <span class="scope-pill-count" id="scope-count-council">4</span>
+            </button>
+            <button class="scope-tab-btn" data-scope="committee_policy">
+              <span>📋 4. Campus Policies &amp; Committees</span>
+              <span class="scope-pill-count" id="scope-count-policy">3</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Guided Mode Dynamic Progress / Instruction Banner -->
+        <div id="guided-tier-banner-container"></div>
+
+        <!-- Sticky Quick Category Jump Navigation Pills -->
+        <div class="category-pills-nav" id="category-pills-nav">
+          <!-- Populated via JS -->
+        </div>
+
+        <!-- Dynamic Ballot Positions Container -->
+        <div id="ballot-positions-container" class="ballot-positions-container">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Bottom Sticky Action Bar -->
+        <div class="ballot-footer-bar">
+          <div class="footer-summary">
+            <svg class="check-ring-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span id="ballot-selection-status-text">Select candidates or NOTA for all positions to proceed.</span>
+          </div>
+          <div class="footer-btn-group">
+            <button id="btn-next-scope" class="btn btn-secondary btn-lg hidden">
+              <span>Next Election Level &rarr;</span>
+            </button>
+            <button id="btn-proceed-review" class="btn btn-primary btn-lg" disabled>
+              <span>Review Selections</span>
+              <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW: REVIEW CHOICES VIEW -->
+      <div id="student-review-container" class="subview-container hidden">
+        <div class="review-layout">
+          <div class="card review-card">
+            <div class="review-header">
+              <div class="badge-pill indigo">Step 3 of 4</div>
+              <h2>Review Your Ballot Selections</h2>
+              <p class="subtitle">Please inspect your candidate selections carefully across all election tiers. Once confirmed, your vote is cryptographically sealed and unmodifiable.</p>
+            </div>
+
+            <!-- List of Selected Candidates -->
+            <div id="review-selections-list" class="review-list">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Identity Detachment Notice -->
+            <div class="crypto-commitment-box">
+              <div class="crypto-icon-col">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="key-icon">
+                  <path d="M21 2l-2 2m-1-1l-3 3m2 2l-3 3m-4.5 1.5a6 6 0 11-8.5-8.5 6 6 0 018.5 8.5z"/>
+                </svg>
+              </div>
+              <div class="crypto-info-col">
+                <h4>Right2Vote Zero-Knowledge Assurance</h4>
+                <p>When you click <strong>"Seal &amp; Cast My Vote"</strong>, your student roll ID is marked as "VOTED" to prevent duplication, while your candidate choices are stripped of all identity metadata and encrypted into an anonymous ledger hash.</p>
+              </div>
+            </div>
+
+            <!-- Review Actions -->
+            <div class="review-actions-bar">
+              <button id="btn-back-to-ballot" class="btn btn-secondary">
+                <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                </svg>
+                Modify Selections
+              </button>
+              <button id="btn-confirm-final-submission" class="btn btn-success btn-lg">
+                <svg class="w-5 h-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Seal &amp; Cast My Vote
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW: OFFICIAL CRYPTOGRAPHIC RECEIPT -->
+      <div id="student-receipt-container" class="subview-container hidden">
+        <div class="receipt-layout">
+          <div class="card receipt-card" id="printable-receipt">
+            <!-- Receipt Header -->
+            <div class="receipt-header">
+              <div class="receipt-crest">
+                <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+                  <rect width="40" height="40" rx="8" fill="#0F172A" />
+                  <path d="M20 7L8 13.5V23C8 28.5 13.1 33.6 20 35C26.9 33.6 32 28.5 32 23V13.5L20 7Z" stroke="#38BDF8" stroke-width="2"/>
+                  <path d="M15 19L18.5 22.5L25 16" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="receipt-header-text">
+                <h3>Apex University Student Elections 2026</h3>
+                <span class="receipt-subtitle">Official Cryptographic Voting Confirmation Receipt (Class, Dept, Council &amp; Policies)</span>
+              </div>
+              <div class="receipt-stamp-badge">
+                <span>SEALED &amp; RECORDED</span>
+              </div>
+            </div>
+
+            <div class="receipt-divider"></div>
+
+            <!-- Receipt Meta Grid -->
+            <div class="receipt-grid">
+              <div class="receipt-field">
+                <span class="field-title">Receipt Reference Number</span>
+                <span class="field-val mono font-bold" id="rcpt-ref-no">AU-2026-VOTE-9821</span>
+              </div>
+              <div class="receipt-field">
+                <span class="field-title">Timestamp Recorded (IST)</span>
+                <span class="field-val" id="rcpt-timestamp">2026-09-26 12:45:10</span>
+              </div>
+              <div class="receipt-field">
+                <span class="field-title">Ledger Block Number</span>
+                <span class="field-val mono font-bold" id="rcpt-block-id">#BLK-0842</span>
+              </div>
+              <div class="receipt-field">
+                <span class="field-title">Ballot Integrity Status</span>
+                <span class="field-val text-green font-bold">✓ Voted &amp; Anonymized</span>
+              </div>
+            </div>
+
+            <!-- SHA-256 Hash Display Box -->
+            <div class="hash-display-box">
+              <div class="hash-header">
+                <span class="hash-title">
+                  <svg class="w-4 h-4 mr-1 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                  </svg>
+                  Cryptographic Verification Token (SHA-256)
+                </span>
+                <button id="btn-copy-hash" class="btn-copy" title="Copy Hash to Clipboard">
+                  Copy Hash
+                </button>
+              </div>
+              <div class="hash-code mono" id="rcpt-hash-token">
+                e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+              </div>
+              <p class="hash-explanation">
+                This SHA-256 digest is an immutable cryptographic fingerprint of your sealed ballot. You can verify this token in the public audit verifier at any time to confirm your vote was counted.
+              </p>
+            </div>
+
+            <!-- Positions Voted Confirmation -->
+            <div class="receipt-positions-summary">
+              <div class="summary-head">Elections Cast Across All 4 Tiers</div>
+              <div class="positions-pill-row">
+                <span class="tag-pill">✓ Class Representative (CR)</span>
+                <span class="tag-pill">✓ Department Representative</span>
+                <span class="tag-pill">✓ Student Body Council</span>
+                <span class="tag-pill">✓ Campus Policy Referendums</span>
+              </div>
+            </div>
+
+            <!-- QR Code Security Watermark -->
+            <div class="receipt-footer-security">
+              <div class="receipt-qr-box">
+                <svg width="72" height="72" viewBox="0 0 100 100" class="qr-svg">
+                  <rect width="100" height="100" fill="white" rx="4"/>
+                  <rect x="8" y="8" width="28" height="28" fill="#0F172A"/>
+                  <rect x="14" y="14" width="16" height="16" fill="white"/>
+                  <rect x="18" y="18" width="8" height="8" fill="#0F172A"/>
+                  <rect x="64" y="8" width="28" height="28" fill="#0F172A"/>
+                  <rect x="70" y="14" width="16" height="16" fill="white"/>
+                  <rect x="74" y="18" width="8" height="8" fill="#0F172A"/>
+                  <rect x="8" y="64" width="28" height="28" fill="#0F172A"/>
+                  <rect x="14" y="70" width="16" height="16" fill="white"/>
+                  <rect x="18" y="74" width="8" height="8" fill="#0F172A"/>
+                  <rect x="42" y="12" width="6" height="6" fill="#0F172A"/>
+                  <rect x="52" y="18" width="6" height="6" fill="#0F172A"/>
+                  <rect x="40" y="42" width="20" height="18" fill="#0F172A"/>
+                  <rect x="68" y="44" width="10" height="8" fill="#0F172A"/>
+                  <rect x="44" y="68" width="12" height="6" fill="#0F172A"/>
+                  <rect x="60" y="74" width="14" height="8" fill="#0F172A"/>
+                </svg>
+              </div>
+              <div class="receipt-security-note">
+                <strong>University Election Supervisory Commission</strong>
+                <p>Audited via Right2Vote cryptographic protocol. Tampering with this digital token is an academic offense.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Receipt Action Panel -->
+          <div class="receipt-actions-panel">
+            <button id="btn-print-receipt" class="btn btn-secondary btn-block">
+              <svg class="w-4 h-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd"/>
+              </svg>
+              Print / Save PDF Receipt
+            </button>
+            <button id="btn-verify-my-receipt" class="btn btn-outline btn-block">
+              Verify in Public Ledger
+            </button>
+            <button id="btn-finish-logout" class="btn btn-primary btn-block">
+              Exit Portal &amp; Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 3: PUBLIC LIVE RESULTS & AUDIT VERIFIER             -->
+    <!-- ======================================================== -->
+    <section id="public-results-view" class="portal-section hidden">
+      <div class="public-view-container">
+        
+        <!-- Header Banner -->
+        <div class="public-results-header">
+          <div class="minimal-badge">Public Audit &amp; Tally Dashboard</div>
+          <h2>Live Election Tallies &amp; Audit Verifier</h2>
+          <p>Real-time voter participation, candidate tallies, and cryptographic ballot verification across all 4 election scopes.</p>
+        </div>
+
+        <!-- Turnout KPI Quick Cards -->
+        <div class="metric-cards-grid">
+          <div class="metric-card">
+            <div class="metric-icon blue">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+              </svg>
+            </div>
+            <div class="metric-data">
+              <span class="metric-title">Eligible Voters</span>
+              <span class="metric-value" id="pub-kpi-total">12</span>
+              <span class="metric-note">Official Roster</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon green">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="metric-data">
+              <span class="metric-title">Ballots Cast</span>
+              <div class="val-group">
+                <span class="metric-value text-green" id="pub-kpi-voted">5</span>
+                <span class="metric-percent-pill" id="pub-kpi-turnout-pct">41.7%</span>
+              </div>
+              <span class="metric-note">Current Turnout Rate</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon purple">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="metric-data">
+              <span class="metric-title">Cipher Ledger</span>
+              <span class="metric-value text-purple" id="pub-kpi-ledger-status">100% SECURE</span>
+              <span class="metric-note">Zero Collisions Verified</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURE: CRYPTOGRAPHIC BALLOT RECEIPT VERIFIER -->
+        <div class="card verifier-tool-card">
+          <div class="verifier-header">
+            <div class="card-icon-circle green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div>
+              <h3>Public Receipt &amp; Ballot Verifier</h3>
+              <p>Paste your SHA-256 hash or Receipt Reference Number to verify that your ballot is cryptographically recorded in the official university ledger.</p>
+            </div>
+          </div>
+
+          <div class="verifier-search-bar">
+            <div class="input-with-action">
+              <input 
+                type="text" 
+                id="verifier-input" 
+                class="form-input mono" 
+                placeholder="Enter SHA-256 Hash or Receipt ID (e.g. AU-2026-VOTE-4819 or 8f5a34...)"
+              />
+              <button id="btn-verify-receipt" class="btn btn-primary btn-input-action">
+                Verify In Ledger
+              </button>
+            </div>
+            <div class="verifier-chips">
+              <span class="text-muted">Test sample hashes:</span>
+              <button class="chip-btn" onclick="app.testVerifyHash('AU-2026-VOTE-4819')">Sneha's Receipt</button>
+              <button class="chip-btn" onclick="app.testVerifyHash('AU-2026-VOTE-5120')">Kabir's Receipt</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Verification Result Box -->
+          <div id="verifier-result-box" class="verifier-result-box hidden">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Position Results & Live Tallies Container with Filter -->
+        <div class="public-tallies-section">
+          <div class="section-title-row">
+            <div>
+              <h3>Candidate Vote Distribution</h3>
+              <p class="text-muted font-sm">Filtered across Class, Department, Council, and Policy tiers.</p>
+            </div>
+            <span class="badge-sub font-bold" id="public-tallies-badge">Live Tabulation</span>
+          </div>
+
+          <!-- Filter Pills for Results -->
+          <div class="filter-pills" id="results-filter-pills" style="margin-bottom: 1.25rem;">
+            <button class="filter-pill active" data-results-scope="all">All Tiers</button>
+            <button class="filter-pill" data-results-scope="class">Class CR</button>
+            <button class="filter-pill" data-results-scope="department">Department</button>
+            <button class="filter-pill" data-results-scope="council">University Council</button>
+            <button class="filter-pill" data-results-scope="committee_policy">Policies &amp; Committees</button>
+          </div>
+
+          <div id="public-tallies-grid" class="tallies-grid">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Department Turnout Breakdown -->
+        <div class="public-dept-turnout-section">
+          <div class="section-title-row">
+            <h3>Department Voter Participation</h3>
+            <span class="badge-sub">Real-time Turnout</span>
+          </div>
+          <div id="public-dept-turnout-list" class="leaderboard-cards-stack">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 4: ELECTION COMMISSION ADMIN DASHBOARD             -->
+    <!-- ======================================================== -->
+    <section id="admin-portal-view" class="portal-section hidden">
+      
+      <!-- Admin Top Bar & Lifecycle Controller -->
+      <div class="admin-topbar">
+        <div>
+          <div class="minimal-badge">Election Commission Console</div>
+          <h2 class="admin-main-heading">Centralized Election Administration</h2>
+          <p class="admin-subheading">Supervisory management of student rolls, candidate slates, live tallies, and cryptographic cipher notarization.</p>
+        </div>
+
+        <!-- Election Phase Switcher -->
+        <div class="phase-controller-card">
+          <div class="phase-label">ELECTION LIFECYCLE:</div>
+          <div class="phase-btn-group" role="group" aria-label="Election Phase">
+            <button id="phase-btn-pre" class="phase-btn" data-phase="PRE-ELECTION">Pre-Election</button>
+            <button id="phase-btn-open" class="phase-btn active" data-phase="VOTING OPEN">Voting Open</button>
+            <button id="phase-btn-locked" class="phase-btn" data-phase="VOTING LOCKED">Lock &amp; Certify</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin KPI Metric Grid -->
+      <div class="metric-cards-grid">
+        <div class="metric-card">
+          <div class="metric-icon blue">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Total Eligible Voters</span>
+            <span class="metric-value" id="kpi-total-voters">12</span>
+            <span class="metric-note">Authorized on Student Roll</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon green">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Ballots Cast</span>
+            <div class="val-group">
+              <span class="metric-value text-green" id="kpi-voted-count">5</span>
+              <span class="metric-percent-pill" id="kpi-turnout-pct">41.7%</span>
+            </div>
+            <span class="metric-note">Voter Turnout Rate</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon amber">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Pending Voters</span>
+            <span class="metric-value text-amber" id="kpi-pending-count">7</span>
+            <span class="metric-note">Awaiting ballot submission</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon purple">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Cipher Integrity</span>
+            <span class="metric-value text-purple" id="kpi-ledger-integrity">100% SECURE</span>
+            <span class="metric-note">Zero collisions verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Secondary Controls & Tabs -->
+      <div class="admin-actions-bar">
+        <div class="admin-tab-nav" role="tablist">
+          <button class="admin-tab active" data-tab="voter-roll" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+            Voter Roll (<span id="tab-voter-count">12</span>)
+          </button>
+          <button class="admin-tab" data-tab="candidates" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+            Candidate Slates
+          </button>
+          <button class="admin-tab" data-tab="dept-turnout" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
+              <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
+            </svg>
+            Dept Turnout
+          </button>
+          <button class="admin-tab" data-tab="live-tally" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+            Live Tallies
+          </button>
+          <button class="admin-tab" data-tab="audit-ledger" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            Cipher Audit Ledger
+          </button>
+          <button class="admin-tab" data-tab="official-results" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"/></svg>
+            Official Declaration
+          </button>
+        </div>
+
+        <!-- Simulation Tools -->
+        <div class="simulation-actions">
+          <button id="btn-simulate-vote" class="btn btn-outline btn-sm" title="Simulate a random vote cast from pending students">
+            ⚡ Cast Mock Vote
+          </button>
+          <button id="btn-reset-demo" class="btn btn-ghost-danger btn-sm" title="Reset all votes and voter roll back to default initial state">
+            ↺ Reset State
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: VOTER ROLL MANAGEMENT -->
+      <div id="tab-content-voter-roll" class="tab-pane active">
+        <div class="card table-card">
+          <div class="table-header-toolbar">
+            <div class="search-filter-group">
+              <div class="search-box">
+                <svg viewBox="0 0 20 20" fill="currentColor" class="search-icon"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+                <input type="text" id="voter-search-input" placeholder="Search student name, roll ID or department..." />
+              </div>
+              <div class="filter-pills">
+                <button class="filter-pill active" data-filter="all">All (<span id="filter-cnt-all">12</span>)</button>
+                <button class="filter-pill" data-filter="pending">Pending (<span id="filter-cnt-pending">7</span>)</button>
+                <button class="filter-pill" data-filter="voted">Voted (<span id="filter-cnt-voted">5</span>)</button>
+              </div>
+            </div>
+
+            <button id="btn-open-add-voter-modal" class="btn btn-primary btn-sm">
+              + Register New Student
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Roll / Student ID</th>
+                  <th>Student Name</th>
+                  <th>Department &amp; Year</th>
+                  <th>Status</th>
+                  <th>Voted Timestamp</th>
+                  <th>Receipt Reference</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="voter-roll-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: CANDIDATE SLATES MANAGEMENT -->
+      <div id="tab-content-candidates" class="tab-pane hidden">
+        <div class="candidate-mgmt-header">
+          <div>
+            <h3>Official Executive Candidate Slates</h3>
+            <p>Review nominations, verify campaign manifestos, and manage ballot candidacies across all election tiers.</p>
+          </div>
+          <button id="btn-open-add-candidate-modal" class="btn btn-primary btn-sm">
+            + Nominate Candidate
+          </button>
+        </div>
+
+        <div id="admin-candidates-container" class="admin-candidates-grid">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 3: DEPT TURNOUT & LEADERBOARD -->
+      <div id="tab-content-dept-turnout" class="tab-pane hidden">
+        <div class="leaderboard-header-card" style="margin-bottom:1.5rem;">
+          <div class="minimal-badge">Real-Time Faculty Breakdown</div>
+          <h3>Department Voter Turnout Tracking</h3>
+          <p>Live participation rates across all academic faculties. Updated automatically as ballots are cast.</p>
+        </div>
+        <div id="admin-dept-leaderboard-container" class="admin-dept-leaderboard">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 4: LIVE TALLIES & CHARTS -->
+      <div id="tab-content-live-tally" class="tab-pane hidden">
+        <div class="live-tally-header-card">
+          <div class="tally-privacy-banner">
+            <div class="privacy-status-text">
+              <strong id="tally-lock-status-title">Ballot Tally Visibility</strong>
+              <p id="tally-lock-status-desc">In standard production mode, live tallies are kept sealed until the election is marked as LOCKED. You can toggle administrator preview for testing below.</p>
+            </div>
+            <div class="tally-toggle-wrapper">
+              <label class="switch">
+                <input type="checkbox" id="admin-tally-override-toggle" checked>
+                <span class="slider round"></span>
+              </label>
+              <span class="toggle-label font-bold">Admin Live Preview</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="tallies-charts-container" class="tallies-grid">
+          <!-- Position tally cards rendered via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 5: CIPHER AUDIT LEDGER -->
+      <div id="tab-content-audit-ledger" class="tab-pane hidden">
+        <div class="card table-card">
+          <div class="ledger-header">
+            <div>
+              <h3>Secure Anonymized Cipher Tally Ledger</h3>
+              <p>Public audit trail. Each record contains an encrypted ballot token and timestamp. Note that student identity is mathematically detached.</p>
+            </div>
+            <div class="ledger-badge">
+              <span class="dot green"></span>
+              <span>Zero-Identity Retention Proof</span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table font-sm">
+              <thead>
+                <tr>
+                  <th>Entry #</th>
+                  <th>Encrypted Ballot Hash (SHA-256)</th>
+                  <th>Encrypted Payload Preview</th>
+                  <th>Timestamp Recorded</th>
+                  <th>Audit Verification</th>
+                </tr>
+              </thead>
+              <tbody id="audit-ledger-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: OFFICIAL CERTIFIED RESULTS -->
+      <div id="tab-content-official-results" class="tab-pane hidden">
+        <div class="results-container">
+          <div class="official-declaration-card" id="official-results-banner">
+            <div class="declaration-header">
+              <div class="declaration-badge">OFFICIAL ELECTION RESULTS</div>
+              <h2>Apex University Student Council 2026-2027</h2>
+              <p id="declaration-subtitle">Certified results declaration by the Election Supervisory Board.</p>
+            </div>
+            <div class="declaration-metrics">
+              <div class="decl-metric">
+                <span class="num" id="decl-total-turnout">0%</span>
+                <span class="lbl">Turnout</span>
+              </div>
+              <div class="decl-metric">
+                <span class="num" id="decl-total-votes">0</span>
+                <span class="lbl">Total Ballots</span>
+              </div>
+              <div class="decl-metric">
+                <span class="num" id="decl-positions-count">10</span>
+                <span class="lbl">Seats Decided</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Position Winners Grid -->
+          <div id="winners-cards-grid" class="winners-cards-grid">
+            <!-- Dynamic winner announcement cards -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 5: DEPARTMENT REPRESENTATIVE PORTAL                 -->
+    <!-- ======================================================== -->
+    <section id="dept-rep-portal-view" class="portal-section hidden">
+      
+      <!-- Dept Rep Top Banner -->
+      <div class="dept-rep-topbar">
+        <div>
+          <div class="minimal-badge">Department Faculty Console</div>
+          <h2 class="admin-main-heading">Department Representative Portal</h2>
+          <p class="admin-subheading">Manage voter rolls, candidate nominations, and real-time voter turnout for your academic faculty.</p>
+        </div>
+
+        <!-- Department Switcher Dropdown -->
+        <div class="dept-switch-control">
+          <label for="dept-rep-select" class="dept-select-label">ACTIVE FACULTY:</label>
+          <div class="dept-select-wrapper">
+            <select id="dept-rep-select" class="dept-select-dropdown">
+              <option value="Computer Science" selected>Computer Science</option>
+              <option value="Mechanical Eng.">Mechanical Engineering</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Electronics & Comm.">Electronics &amp; Comm.</option>
+              <option value="Business Administration">Business Administration</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department KPI Summary Cards -->
+      <div class="metric-cards-grid">
+        <div class="metric-card">
+          <div class="metric-icon blue">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Enrolled Students</span>
+            <span class="metric-value" id="dept-kpi-total">0</span>
+            <span class="metric-note" id="dept-kpi-dept-label">Department Voter Roll</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon green">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Ballots Cast</span>
+            <div class="val-group">
+              <span class="metric-value text-green" id="dept-kpi-voted">0</span>
+              <span class="metric-percent-pill" id="dept-kpi-turnout-pct">0%</span>
+            </div>
+            <span class="metric-note">Department Turnout Rate</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon amber">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Pending Voters</span>
+            <span class="metric-value text-amber" id="dept-kpi-pending">0</span>
+            <span class="metric-note">Awaiting ballot submission</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon purple">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M6 3a1 1 0 011-1h6a1 1 0 011 1v1h2a2 2 0 012 2v2a5 5 0 01-4 4.9V14a2 2 0 01-2 2h-1v2h2a1 1 0 110 2H7a1 1 0 110-2h2v-2H8a2 2 0 01-2-2v-1.1A5 5 0 012 9V6a2 2 0 012-2h2V3zm8 3V4H6v2H4v3a3 3 0 003 3h6a3 3 0 003-3V6h-2z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-title">Faculty Turnout Rank</span>
+            <span class="metric-value text-purple" id="dept-kpi-rank">#1 Campus Rank</span>
+            <span class="metric-note" id="dept-kpi-rank-sub">Leading Participation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Navigation Tabs -->
+      <div class="dept-tab-bar">
+        <div class="dept-tab-nav" role="tablist">
+          <button class="dept-tab active" data-dept-tab="voters" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+            </svg>
+            Department Voter Roll (<span id="dept-tab-voter-count">0</span>)
+          </button>
+          <button class="dept-tab" data-dept-tab="candidates" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+            </svg>
+            Department Candidates
+          </button>
+          <button class="dept-tab" data-dept-tab="leaderboard" role="tab">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M6 3a1 1 0 011-1h6a1 1 0 011 1v1h2a2 2 0 012 2v2a5 5 0 01-4 4.9V14a2 2 0 01-2 2h-1v2h2a1 1 0 110 2H7a1 1 0 110-2h2v-2H8a2 2 0 01-2-2v-1.1A5 5 0 012 9V6a2 2 0 012-2h2V3zm8 3V4H6v2H4v3a3 3 0 003 3h6a3 3 0 003-3V6h-2z" clip-rule="evenodd"/>
+            </svg>
+            Campus Turnout Leaderboard
+          </button>
+        </div>
+
+        <button id="btn-dept-register-student" class="btn btn-primary btn-sm">
+          + Register Student to Roll
+        </button>
+      </div>
+
+      <!-- DEPT TAB 1: VOTER ROLL -->
+      <div id="dept-tab-content-voters" class="dept-tab-pane active">
+        <div class="card table-card">
+          <div class="table-header-toolbar">
+            <div class="search-filter-group">
+              <div class="search-box">
+                <svg viewBox="0 0 20 20" fill="currentColor" class="search-icon"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+                <input type="text" id="dept-voter-search" placeholder="Search student name or ID..." />
+              </div>
+              <div class="filter-pills">
+                <button class="dept-filter-pill active" data-filter="all">All</button>
+                <button class="dept-filter-pill" data-filter="pending">Pending</button>
+                <button class="dept-filter-pill" data-filter="voted">Voted</button>
+              </div>
+            </div>
+            <div class="dept-actions-group">
+              <span class="badge-sub font-bold text-primary" id="dept-roll-status-note">Verified Roster</span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Roll / Student ID</th>
+                  <th>Student Name</th>
+                  <th>Year Level</th>
+                  <th>Status</th>
+                  <th>Timestamp Voted</th>
+                  <th>Verification Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="dept-voter-roll-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPT TAB 2: CANDIDATE PROFILES -->
+      <div id="dept-tab-content-candidates" class="dept-tab-pane hidden">
+        <div class="candidate-mgmt-header">
+          <div>
+            <h3 id="dept-candidates-title">Department Representative Nominees</h3>
+            <p>Candidate profiles for Department Class Representative and Student Welfare Coordinator.</p>
+          </div>
+          <button id="btn-open-dept-add-candidate" class="btn btn-primary btn-sm">
+            + Nominate Dept Candidate
+          </button>
+        </div>
+
+        <div id="dept-candidates-grid" class="admin-candidates-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- DEPT TAB 3: LEADERBOARD -->
+      <div id="dept-tab-content-leaderboard" class="dept-tab-pane hidden">
+        <div class="leaderboard-container">
+          <div class="leaderboard-header-card">
+            <div class="minimal-badge">Faculty Turnout Trophy</div>
+            <h3>University Department Turnout Leaderboard</h3>
+            <p>Real-time voter turnout ranking across all academic faculties. Updated live as ballots are cast.</p>
+          </div>
+
+          <div id="dept-leaderboard-list" class="leaderboard-cards-stack">
+            <!-- Dynamic leaderboard cards -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODALS & OVERLAYS                                        -->
+  <!-- ======================================================== -->
+
+  <!-- Modal 1: Candidate Manifesto Modal -->
+  <div id="modal-manifesto" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="manifesto-candidate-name">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-with-avatar">
+          <div class="avatar-lg" id="manifesto-avatar">AJ</div>
+          <div>
+            <span class="candidate-position-pill" id="manifesto-position">Candidate for President</span>
+            <h3 id="manifesto-candidate-name">Aarav Joshi</h3>
+            <span class="manifesto-dept" id="manifesto-candidate-dept">Computer Science • 4th Year</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-manifesto" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="manifesto-tagline-box">
+          <svg class="quote-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+          </svg>
+          <p id="manifesto-tagline" class="manifesto-tagline">"Building a transparent, tech-forward campus where student voices lead university policy."</p>
+        </div>
+
+        <div class="manifesto-section">
+          <h4>Key Campaign Priorities &amp; Action Items</h4>
+          <ul id="manifesto-pillars-list" class="manifesto-pillars-list">
+            <!-- Pillars -->
+          </ul>
+        </div>
+
+        <div class="manifesto-section">
+          <h4>Candidate Biography &amp; Campus Leadership</h4>
+          <p id="manifesto-bio" class="manifesto-bio-text"></p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-manifesto-close-bottom">Close Details</button>
+        <button class="btn btn-primary" id="btn-manifesto-select-candidate">Select This Candidate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Anonymization Pipeline Animation Sequence -->
+  <div id="modal-anonymize" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content modal-md crypto-modal">
+      <div class="pipeline-header">
+        <div class="crypto-spinning-gear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 6v6l4 2"></path>
+          </svg>
+        </div>
+        <h3>Cryptographic Ballot Sealing Pipeline</h3>
+        <p>Executing Right2Vote zero-knowledge identity stripping and ledger notarization...</p>
+      </div>
+
+      <div class="pipeline-steps-container">
+        <!-- Step 1 -->
+        <div class="pipeline-step-item" id="pipe-step-1">
+          <div class="pipe-indicator">
+            <span class="pipe-num">1</span>
+            <svg class="pipe-check hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          </div>
+          <div class="pipe-text">
+            <strong>Voter Roll Check &amp; Double-Vote Lock</strong>
+            <p>Verifying identity token &amp; marking Roll ID <span class="mono font-bold" id="pipe-voter-id">STU2024001</span> as "VOTED".</p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="pipeline-step-item" id="pipe-step-2">
+          <div class="pipe-indicator">
+            <span class="pipe-num">2</span>
+            <svg class="pipe-check hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          </div>
+          <div class="pipe-text">
+            <strong>Zero-Knowledge Identity Stripping</strong>
+            <p>Purging student name, roll number, IP address, and browser fingerprint from ballot package.</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="pipeline-step-item" id="pipe-step-3">
+          <div class="pipe-indicator">
+            <span class="pipe-num">3</span>
+            <svg class="pipe-check hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          </div>
+          <div class="pipe-text">
+            <strong>SHA-256 Digest &amp; Immutable Cipher Ledger</strong>
+            <p>Computing deterministic cryptographic verification hash and notarizing in public audit ledger.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-progress-bar">
+        <div class="pipeline-progress-fill" id="pipeline-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Register New Student Modal (Admin) -->
+  <div id="modal-add-voter" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Register Eligible Student</h3>
+        <button class="modal-close-btn" id="btn-close-add-voter">&times;</button>
+      </div>
+      <form id="form-add-voter" onsubmit="return false;">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Student Roll ID <span class="required">*</span></label>
+            <input type="text" id="new-voter-id" class="form-input" placeholder="e.g. STU2024013" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" id="new-voter-name" class="form-input" placeholder="e.g. Vikramaditya Rao" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department <span class="required">*</span></label>
+            <select id="new-voter-dept" class="form-input">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Mechanical Eng.">Mechanical Engineering</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Electronics & Comm.">Electronics &amp; Comm.</option>
+              <option value="Business Administration">Business Administration</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Academic Year <span class="required">*</span></label>
+            <select id="new-voter-year" class="form-input">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year" selected>3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add-voter">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-new-voter">Add to Roll</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Nominate Candidate Modal (Admin) -->
+  <div id="modal-add-candidate" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content modal-md">
+      <div class="modal-header">
+        <h3>Nominate Candidate / Policy Question</h3>
+        <button class="modal-close-btn" id="btn-close-add-candidate">&times;</button>
+      </div>
+      <form id="form-add-candidate" onsubmit="return false;">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Election Scope / Category <span class="required">*</span></label>
+            <select id="new-cand-scope" class="form-input" required>
+              <option value="class">Class Representative (CR)</option>
+              <option value="department">Department Representative</option>
+              <option value="council" selected>University Student Council</option>
+              <option value="committee_policy">Campus Policy / Committee</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Position / Question Title <span class="required">*</span></label>
+            <input list="positions-datalist" id="new-cand-position" class="form-input" placeholder="e.g. Class Representative (CR) or President" required />
+            <datalist id="positions-datalist">
+              <option value="Class Representative (CR)">
+              <option value="Deputy Class Representative">
+              <option value="Department Representative">
+              <option value="Department Academic Coordinator">
+              <option value="President">
+              <option value="Vice President">
+              <option value="General Secretary">
+              <option value="Sports Secretary">
+              <option value="Hostel & Dining Oversight Committee Head">
+              <option value="Campus Policy Referendum #1: 24/7 Library & Maker Access">
+              <option value="Campus Policy Referendum #2: Academic Attendance Flexibility">
+            </datalist>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Candidate Name / Lead Proponent <span class="required">*</span></label>
+              <input type="text" id="new-cand-name" class="form-input" placeholder="e.g. Meera Nair" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department &amp; Year <span class="required">*</span></label>
+              <input type="text" id="new-cand-dept" class="form-input" placeholder="e.g. Computer Science, 3rd Year" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Campaign Tagline / Proposition Summary <span class="required">*</span></label>
+            <input type="text" id="new-cand-tagline" class="form-input" placeholder="e.g. Transparent advocacy and enhanced lab equipment" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Key Priorities (Comma-separated) <span class="required">*</span></label>
+            <textarea id="new-cand-pillars" class="form-input" rows="2" placeholder="e.g. 24/7 Library access, Mental health advocacy, Upgraded cafeteria" required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brief Biography / Context <span class="required">*</span></label>
+            <textarea id="new-cand-bio" class="form-input" rows="3" placeholder="Candidate background, previous leadership, and experience..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add-candidate">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-new-candidate">Approve &amp; Nominate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Department Candidate Nomination (Dept Rep Portal) -->
+  <div id="modal-add-dept-candidate" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content modal-md">
+      <div class="modal-header">
+        <h3>Nominate Department / Class Candidate</h3>
+        <button class="modal-close-btn" id="btn-close-add-dept-candidate">&times;</button>
+      </div>
+      <form id="form-add-dept-candidate" onsubmit="return false;">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nomination Level <span class="required">*</span></label>
+            <select id="new-dept-cand-tier" class="form-input" required>
+              <option value="class">Class Representative (CR)</option>
+              <option value="department" selected>Department Representative</option>
+              <option value="welfare">Department Student Welfare Coordinator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department <span class="required">*</span></label>
+            <select id="new-dept-cand-dept" class="form-input" required>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Mechanical Eng.">Mechanical Engineering</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Electronics & Comm.">Electronics &amp; Comm.</option>
+              <option value="Business Administration">Business Administration</option>
+            </select>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Candidate Name <span class="required">*</span></label>
+              <input type="text" id="new-dept-cand-name" class="form-input" placeholder="e.g. Aarav Sharma" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Year Level <span class="required">*</span></label>
+              <select id="new-dept-cand-year" class="form-input">
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option selected>3rd Year</option>
+                <option>4th Year</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Campaign Tagline <span class="required">*</span></label>
+            <input type="text" id="new-dept-cand-tagline" class="form-input" placeholder="e.g. Representing every student voice" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Campaign Priorities (comma-separated)</label>
+            <textarea id="new-dept-cand-pillars" class="form-input" rows="2" placeholder="e.g. Improve lab facilities, organize department events..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brief Biography <span class="required">*</span></label>
+            <textarea id="new-dept-cand-bio" class="form-input" rows="3" placeholder="Academic background and student leadership experience..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add-dept-candidate">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-new-dept-candidate">Nominate Candidate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Entry Point -->
+  <script src="app.js"></script>
+</body>
+</html>
