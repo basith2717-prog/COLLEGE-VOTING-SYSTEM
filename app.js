@@ -1501,6 +1501,15 @@ class VotingApp {
     this.stateMgr.saveState();
 
     this.showToast("Verified Successfully", `Welcome, ${voter.name}! Confidential ballot loaded.`, "success");
+    
+    // If there was a pending tier jump, apply it
+    if (this.stateMgr.state.pendingJumpTier) {
+      const tier = this.stateMgr.state.pendingJumpTier;
+      this.stateMgr.state.pendingJumpTier = null;
+      this.stateMgr.state.ballotScope = tier;
+      this.stateMgr.saveState();
+    }
+    
     this.activateView("student");
     this.setStep(2);
   }
@@ -1627,32 +1636,204 @@ class VotingApp {
     }
   }
 
+  // ==========================================================================
+  // BALLOT SCOPE, GUIDED MODE & TIER NAVIGATION
+  // ==========================================================================
+  getPositionsForScope(scope) {
+    if (scope === "all") return this.positions;
+    const tierKeys = Object.keys(ELECTION_TIERS);
+    if (scope === "class") return ELECTION_TIERS.class.positions;
+    if (scope === "department") return ELECTION_TIERS.department.positions;
+    if (scope === "council") return ELECTION_TIERS.council.positions;
+    if (scope === "committee_policy") return ELECTION_TIERS.committee_policy.positions;
+    return this.positions;
+  }
+
+  getTierForPosition(position) {
+    for (const [key, tier] of Object.entries(ELECTION_TIERS)) {
+      if (tier.positions.includes(position)) return key;
+    }
+    return "council";
+  }
+
+  jumpToElectionTier(tierId) {
+    // If user is logged in as student, navigate to ballot with that scope
+    if (this.stateMgr.state.activeStudent) {
+      this.setBallotScope(tierId);
+      this.activateView("student");
+      this.setStep(2);
+    } else {
+      // Store the pending jump and open login
+      this.stateMgr.state.pendingJumpTier = tierId;
+      this.stateMgr.saveState();
+      this.showLoginGateway("student");
+      this.showToast("Login Required", `Please authenticate to access ${ELECTION_TIERS[tierId]?.title || tierId} ballot.`, "info");
+    }
+  }
+
+  setBallotScope(scope) {
+    this.stateMgr.state.ballotScope = scope;
+    this.stateMgr.saveState();
+
+    // Update active tab UI
+    this.scopeTabBtns.forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-scope") === scope);
+    });
+
+    // Update guided step index if in guided mode
+    if (this.stateMgr.state.ballotMode === "guided") {
+      const tierOrder = ["class", "department", "council", "committee_policy"];
+      const idx = tierOrder.indexOf(scope);
+      if (idx !== -1) {
+        this.stateMgr.state.guidedStepIndex = idx;
+        this.stateMgr.saveState();
+      }
+    }
+
+    this.renderBallot();
+  }
+
+  setBallotMode(mode) {
+    this.stateMgr.state.ballotMode = mode;
+    if (mode === "guided") {
+      this.stateMgr.state.guidedStepIndex = 0;
+      this.stateMgr.state.ballotScope = "class";
+    } else {
+      this.stateMgr.state.ballotScope = "all";
+    }
+    this.stateMgr.saveState();
+
+    // Update mode toggle buttons
+    if (this.btnToggleAllScopes) this.btnToggleAllScopes.classList.toggle("active", mode === "all");
+    if (this.btnToggleGuidedScopes) this.btnToggleGuidedScopes.classList.toggle("active", mode === "guided");
+
+    // Update scope tabs
+    this.scopeTabBtns.forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-scope") === this.stateMgr.state.ballotScope);
+    });
+
+    this.renderBallot();
+    this.showToast("Ballot Mode", mode === "guided" ? "Guided step-by-step mode activated. Start with Class Election." : "Showing all election tiers at once.", "info");
+  }
+
+  advanceGuidedScope() {
+    const tierOrder = ["class", "department", "council", "committee_policy"];
+    let nextIdx = this.stateMgr.state.guidedStepIndex + 1;
+    if (nextIdx >= tierOrder.length) {
+      // All tiers done, switch to "all" view
+      this.stateMgr.state.ballotMode = "all";
+      this.stateMgr.state.ballotScope = "all";
+      this.stateMgr.saveState();
+      if (this.btnToggleAllScopes) this.btnToggleAllScopes.classList.add("active");
+      if (this.btnToggleGuidedScopes) this.btnToggleGuidedScopes.classList.remove("active");
+      this.scopeTabBtns.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-scope") === "all"));
+      this.renderBallot();
+      this.showToast("All Tiers Complete!", "All election levels visited. Review your full ballot now.", "success");
+      return;
+    }
+    this.stateMgr.state.guidedStepIndex = nextIdx;
+    this.stateMgr.state.ballotScope = tierOrder[nextIdx];
+    this.stateMgr.saveState();
+    this.scopeTabBtns.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-scope") === tierOrder[nextIdx]));
+    this.renderBallot();
+    this.showToast("Next Tier", `Now voting for: ${ELECTION_TIERS[tierOrder[nextIdx]].title}`, "info");
+  }
+
+  quickFillAllBallot() {
+    const { candidates } = this.stateMgr.state;
+    this.positions.forEach(position => {
+      const posCandidates = candidates.filter(c => c.position === position);
+      if (posCandidates.length > 0) {
+        this.stateMgr.state.ballotSelections[position] = posCandidates[0].id;
+      }
+    });
+    this.stateMgr.saveState();
+    this.renderBallot();
+    this.showToast("Quick Fill Complete", `All ${this.positions.length} positions auto-selected with first candidates for demo.`, "success");
+  }
+
+  renderGuidedTierBanner() {
+    if (!this.guidedTierBannerContainer) return;
+    
+    if (this.stateMgr.state.ballotMode !== "guided") {
+      this.guidedTierBannerContainer.innerHTML = "";
+      return;
+    }
+
+    const tierOrder = ["class", "department", "council", "committee_policy"];
+    const stepIdx = this.stateMgr.state.guidedStepIndex;
+    const currentTier = ELECTION_TIERS[tierOrder[stepIdx]];
+    const isLast = stepIdx >= tierOrder.length - 1;
+
+    this.guidedTierBannerContainer.innerHTML = `
+      <div class="guided-tier-banner">
+        <div class="guided-tier-info">
+          <h4>${currentTier.title}</h4>
+          <p>${currentTier.subtitle}</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="tier-badge">${currentTier.badge}</span>
+          <span class="badge-sub">Step ${stepIdx + 1} of ${tierOrder.length}</span>
+        </div>
+      </div>
+    `;
+  }
+
   renderBallot() {
-    const { candidates, ballotSelections } = this.stateMgr.state;
+    const { candidates, ballotSelections, ballotScope, ballotMode } = this.stateMgr.state;
     this.ballotPositionsContainer.innerHTML = "";
     this.categoryPillsNav.innerHTML = "";
 
-    let chosenCount = 0;
+    // Determine which positions to show based on scope
+    const visiblePositions = this.getPositionsForScope(ballotScope);
+    
+    // Count total chosen across ALL positions (not just visible)
+    let totalChosenCount = 0;
+    this.positions.forEach(pos => {
+      if (ballotSelections[pos]) totalChosenCount++;
+    });
 
-    this.positions.forEach((position, idx) => {
+    // Count visible chosen
+    let visibleChosenCount = 0;
+
+    // Render guided mode banner
+    this.renderGuidedTierBanner();
+
+    // Show/hide next scope button in guided mode
+    if (this.btnNextScope) {
+      if (ballotMode === "guided") {
+        const scopePositions = visiblePositions;
+        const allScopeChosen = scopePositions.every(pos => Boolean(ballotSelections[pos]));
+        this.btnNextScope.classList.toggle("hidden", !allScopeChosen);
+      } else {
+        this.btnNextScope.classList.add("hidden");
+      }
+    }
+
+    visiblePositions.forEach((position, idx) => {
       const positionCandidates = candidates.filter(c => c.position === position);
       const chosenCandidateId = ballotSelections[position];
       const isChosen = Boolean(chosenCandidateId);
-      if (isChosen) chosenCount++;
+      if (isChosen) visibleChosenCount++;
 
       // Quick jump pill
+      const globalIdx = this.positions.indexOf(position);
       const jumpPill = document.createElement("a");
-      jumpPill.href = `#pos-${idx}`;
+      jumpPill.href = `#pos-${globalIdx}`;
       jumpPill.className = `category-nav-pill ${isChosen ? "filled" : ""}`;
       jumpPill.innerHTML = `
         <span>${isChosen ? "✓" : (idx + 1)}</span>
-        <span>${position}</span>
+        <span>${position.length > 35 ? position.slice(0, 32) + "..." : position}</span>
       `;
       this.categoryPillsNav.appendChild(jumpPill);
 
+      // Determine tier label for this position
+      const tierKey = this.getTierForPosition(position);
+      const tierInfo = ELECTION_TIERS[tierKey];
+
       // Section
       const posSection = document.createElement("section");
-      posSection.id = `pos-${idx}`;
+      posSection.id = `pos-${globalIdx}`;
       posSection.className = "position-section";
 
       posSection.innerHTML = `
@@ -1660,6 +1841,7 @@ class VotingApp {
           <div class="position-title-area">
             <h3 class="position-name">${position}</h3>
             <span class="position-rule-pill">Choose 1 Candidate or NOTA</span>
+            ${ballotScope === "all" ? `<span class="tier-badge" style="margin-left: 0.5rem; font-size: 0.68rem;">${tierInfo.badge}</span>` : ""}
           </div>
           <div class="position-status-badge ${isChosen ? "chosen" : "pending"}">
             ${isChosen ? "✓ Selected" : "Pending Choice"}
@@ -1740,17 +1922,46 @@ class VotingApp {
       this.ballotPositionsContainer.appendChild(posSection);
     });
 
-    const pct = Math.round((chosenCount / this.positions.length) * 100);
-    this.ballotProgressCount.textContent = `${chosenCount} of ${this.positions.length} Chosen`;
+    // Update progress bar with TOTAL selections across all positions
+    const totalPositions = this.positions.length;
+    const pct = Math.round((totalChosenCount / totalPositions) * 100);
+    this.ballotProgressCount.textContent = `${totalChosenCount} of ${totalPositions} Chosen`;
     this.ballotProgressFill.style.width = `${pct}%`;
 
-    const allChosen = chosenCount === this.positions.length;
+    const allChosen = totalChosenCount === totalPositions;
     this.btnProceedReview.disabled = !allChosen;
     if (allChosen) {
-      this.ballotSelectionStatusText.innerHTML = `<strong>All 4 choices selected!</strong> You can now proceed to review your ballot.`;
+      this.ballotSelectionStatusText.innerHTML = `<strong>All ${totalPositions} choices selected!</strong> You can now proceed to review your ballot.`;
     } else {
-      this.ballotSelectionStatusText.textContent = `Select one candidate or NOTA for all 4 positions to proceed (${chosenCount}/${this.positions.length}).`;
+      const scopeLabel = ballotScope !== "all" ? ` (Viewing: ${ELECTION_TIERS[ballotScope]?.shortTitle || ballotScope})` : "";
+      this.ballotSelectionStatusText.textContent = `Select candidates for all ${totalPositions} positions to proceed (${totalChosenCount}/${totalPositions}).${scopeLabel}`;
     }
+
+    // Update scope counts in tab pills
+    this.updateScopeCounts();
+  }
+
+  updateScopeCounts() {
+    const { ballotSelections } = this.stateMgr.state;
+    const countForScope = (scope) => {
+      const positions = this.getPositionsForScope(scope);
+      return positions.filter(pos => Boolean(ballotSelections[pos])).length;
+    };
+    
+    const setCount = (id, scope) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const chosen = countForScope(scope);
+        const total = this.getPositionsForScope(scope).length;
+        el.textContent = `${chosen}/${total}`;
+      }
+    };
+
+    setCount("scope-count-all", "all");
+    setCount("scope-count-class", "class");
+    setCount("scope-count-dept", "department");
+    setCount("scope-count-council", "council");
+    setCount("scope-count-policy", "committee_policy");
   }
 
   selectCandidate(position, candidateId) {
@@ -1946,7 +2157,7 @@ class VotingApp {
   // PUBLIC RESULTS & AUDIT RECEIPT VERIFIER
   // ==========================================================================
   renderPublicResults() {
-    const { voterRoll, cipherLedger, candidates, electionStatus, adminPreviewTallies } = this.stateMgr.state;
+    const { voterRoll, cipherLedger, candidates, electionStatus, adminPreviewTallies, resultsScope } = this.stateMgr.state;
     const totalVoters = voterRoll.length;
     const votedCount = voterRoll.filter(v => v.status === "VOTED").length;
     const turnoutPct = totalVoters > 0 ? ((votedCount / totalVoters) * 100).toFixed(1) : 0;
@@ -1960,9 +2171,12 @@ class VotingApp {
     const canShowTallies = isLocked || adminPreviewTallies;
     this.publicTalliesBadge.textContent = isLocked ? "Official Certified Results" : (canShowTallies ? "Live Admin Preview" : "Sealed During Polling");
 
+    // Determine which positions to show based on results scope filter
+    const filteredPositions = this.getPositionsForScope(resultsScope || "all");
+
     // Render Tallies Grid
     this.publicTalliesGrid.innerHTML = "";
-    this.positions.forEach(position => {
+    filteredPositions.forEach(position => {
       const positionCandidates = candidates.filter(c => c.position === position);
       const positionVotes = {};
       let totalPositionBallots = 0;
@@ -2535,6 +2749,19 @@ class VotingApp {
     this.deptKpiPending.textContent = pendingDept;
     this.deptKpiDeptLabel.textContent = `${dept} Voter Roll`;
 
+    // Calculate department rank among all departments
+    const departments = ["Computer Science", "Electronics & Comm.", "Mechanical Eng.", "Biotechnology", "Business Administration"];
+    const deptStats = departments.map(d => {
+      const inDept = voterRoll.filter(v => v.department === d);
+      const voted = inDept.filter(v => v.status === "VOTED").length;
+      const total = inDept.length;
+      const pct = total > 0 ? (voted / total) * 100 : 0;
+      return { dept: d, pct };
+    });
+    deptStats.sort((a, b) => b.pct - a.pct);
+    const rank = deptStats.findIndex(d => d.dept === dept) + 1;
+    if (this.deptKpiRank) this.deptKpiRank.textContent = `#${rank} of ${departments.length}`;
+
     this.renderDeptVoterRollTable();
     this.renderDeptCandidates();
     this.renderDeptTurnoutStack(this.deptLeaderboardList);
@@ -2910,4 +3137,6 @@ class VotingApp {
 let app;
 document.addEventListener("DOMContentLoaded", () => {
   app = new VotingApp();
+  window.app = app;
 });
+
